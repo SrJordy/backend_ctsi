@@ -18,29 +18,34 @@ model usuario {
   password      String
   creadoEn      DateTime @default(now())
   actualizadoEn DateTime @updatedAt
+  estado        Boolean  @default(true)
 
   paciente        paciente[]
   citamedica      citamedica[]
   historialmedico historialmedico[]
+  receta          receta[]
 }
 
 model paciente {
-  cod_paciente    Int               @id @default(autoincrement())
-  nombre          String
-  apellido        String
-  CID             Int
-  telefono        Int
-  fecha_nac       DateTime
-  genero          String
-  direccion       String?
-  cuidador_id     Int
-  creadoEn        DateTime          @default(now())
-  actualizadoEn   DateTime          @updatedAt
+  cod_paciente  Int      @id @default(autoincrement())
+  nombre        String
+  apellido      String
+  CID           Int
+  telefono      Int
+  fecha_nac     DateTime
+  genero        String
+  direccion     String?
+  cuidador_id   Int
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+  estado        Boolean  @default(true)
+
   cuidador        usuario           @relation(fields: [cuidador_id], references: [cod_usuario])
   recordatorio    recordatorio[]
   medicamento     medicamento[]
   citamedica      citamedica[]
   historialmedico historialmedico[]
+  receta          receta[]
 }
 
 model recordatorio {
@@ -60,14 +65,24 @@ model recordatorio {
 model medicamento {
   cod_medicamento Int    @id @default(autoincrement())
   nombre          String
-  persona_id      Int
   dosis           String
   frecuenciamin   Int
   cantidadtotal   Int
   receta_id       Int
 
-  persona      paciente       @relation(fields: [persona_id], references: [cod_paciente])
-  recordatorio recordatorio[]
+  recordatorio         recordatorio[]
+  paciente             paciente?      @relation(fields: [pacienteCod_paciente], references: [cod_paciente])
+  pacienteCod_paciente Int?
+}
+
+model receta {
+  cod_receta     Int      @id @default(autoincrement())
+  fecha          DateTime @default(now())
+  persona_id     Int
+  profesional_id Int
+
+  persona     paciente @relation(fields: [persona_id], references: [cod_paciente])
+  profesional usuario  @relation(fields: [profesional_id], references: [cod_usuario])
 }
 
 model citamedica {
@@ -96,6 +111,8 @@ model historialmedico {
   profesional usuario       @relation(fields: [profesional_id], references: [cod_usuario])
   persona     paciente      @relation(fields: [persona_id], references: [cod_paciente])
   diagnostico diagnostico[]
+  tratamiento tratamiento[]
+  examenes    examenes[]
 }
 
 model diagnostico {
@@ -107,14 +124,32 @@ model diagnostico {
   historial historialmedico @relation(fields: [historial_id], references: [cod_historial])
 }
 
+model tratamiento {
+  cod_tratamiento Int      @id @default(autoincrement())
+  descripcion     String
+  fechainicio     DateTime
+  fechafin        DateTime
+  historial_id    Int
+
+  historial historialmedico @relation(fields: [historial_id], references: [cod_historial])
+}
+
+model examenes {
+  cod_examen   Int      @id @default(autoincrement())
+  tipo         String
+  resultados   String
+  fecha        DateTime
+  historial_id Int
+
+  historial historialmedico @relation(fields: [historial_id], references: [cod_historial])
+}
+
 enum Rol {
   CUIDADOR
-  FAMILIAR
   PROFESIONAL
 }
 
 enum TipoRecordatorio {
   MEDICAMENTO
   CITA
-  ACTIVIDAD
 }
