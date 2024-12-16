@@ -27,16 +27,17 @@ export const getMedicamento = async (req: NextApiRequest, res: NextApiResponse) 
 
 export const createMedicamento = async (req: NextApiRequest, res: NextApiResponse) => {
     try {
-        const { nombre, dosis, frecuenciamin, cantidadtotal, pacienteCod_paciente } = req.body;
-        if (!nombre || !dosis || !frecuenciamin || !cantidadtotal || !pacienteCod_paciente) {
+        const { nombre, descripcion, frecuenciamin, cantidadtotal, receta_id } = req.body;
+        if (!nombre || !descripcion || !frecuenciamin || !cantidadtotal || !receta_id) {
             return res.status(400).json({ error: "Faltan datos requeridos" });
         }
+        console.log(req.body)
         const newMedicamento = await MedicamentoServices.createMedicamento({
             nombre,
-            dosis,
+            descripcion,
             frecuenciamin,
             cantidadtotal,
-            pacienteCod_paciente,
+            receta_id
         });
         return res.status(201).json(newMedicamento);
     } catch (error) {
@@ -48,15 +49,16 @@ export const createMedicamento = async (req: NextApiRequest, res: NextApiRespons
 export const updateMedicamento = async (req: NextApiRequest, res: NextApiResponse) => {
     const { id } = req.query;
     try {
-        const { nombre, dosis, frecuenciamin, cantidadtotal, pacienteCod_paciente } = req.body;
+        const { nombre, descripcion, frecuenciamin, cantidadtotal, receta_id} = req.body;
         if (!id) {
             return res.status(400).json({ error: "El ID es requerido para actualizar un medicamento" });
         }
         const updatedMedicamento = await MedicamentoServices.updateMedicamento(Number(id), {
             nombre,
-            dosis,
+            descripcion,
             frecuenciamin,
             cantidadtotal,
+            receta_id
         });
         return res.status(200).json(updatedMedicamento);
     } catch (error) {

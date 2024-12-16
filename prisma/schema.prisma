@@ -42,7 +42,6 @@ model paciente {
 
   cuidador        usuario           @relation(fields: [cuidador_id], references: [cod_usuario])
   recordatorio    recordatorio[]
-  medicamento     medicamento[]
   citamedica      citamedica[]
   historialmedico historialmedico[]
   receta          receta[]
@@ -65,15 +64,13 @@ model recordatorio {
 model medicamento {
   cod_medicamento Int    @id @default(autoincrement())
   nombre          String
-  dosis           String
+  descripcion     String
   frecuenciamin   Int
   cantidadtotal   Int
   receta_id       Int
 
-  recordatorio         recordatorio[]
-  recetamedi           receta         @relation(fields: [receta_id], references: [cod_receta])
-  paciente             paciente?      @relation(fields: [pacienteCod_paciente], references: [cod_paciente])
-  pacienteCod_paciente Int?
+  recordatorio recordatorio[]
+  recetamedi   receta         @relation(fields: [receta_id], references: [cod_receta])
 }
 
 model receta {
