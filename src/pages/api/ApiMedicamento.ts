@@ -1,38 +1,33 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import * as UserController from "@/controller/UserController";
+import * as MedicamentoController from "@/controller/MedicamentoController";
 import corsMiddleware from "@/lib/corsMiddleware";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
         await corsMiddleware(req, res);
         const { method } = req;
-        const { id, nombre, apellido, CID, telefono, email } = req.query;
-
+        const { id } = req.query;
         switch (method) {
             case "GET":
-                if (id || nombre || apellido || CID || telefono || email) {
-                    return await UserController.getUser(req, res);
+                if (id) {
+                    return await MedicamentoController.getMedicamento(req, res);
                 } else {
-                    return await UserController.getUsers(req, res);
+                    return await MedicamentoController.getMedicamentos(req, res);
                 }
-
             case "POST":
-                return await UserController.createUser(req, res);
-
+                return await MedicamentoController.createMedicamento(req, res);
             case "PUT":
                 if (id) {
-                    return await UserController.updateUser(req, res);
+                    return await MedicamentoController.updateMedicamento(req, res);
                 } else {
                     return res.status(400).json({ message: "El ID es requerido para realizar la actualización" });
                 }
-
             case "DELETE":
                 if (id) {
-                    return await UserController.deleteUser(req, res);
+                    return await MedicamentoController.deleteMedicamento(req, res);
                 } else {
-                    return res.status(400).json({ message: "El ID es requerido para eliminar un usuario" });
+                    return res.status(400).json({ message: "El ID es requerido para eliminar un medicamento" });
                 }
-
             default:
                 return res.status(405).json({ message: "Método no permitido" });
         }
@@ -41,4 +36,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).json({ error: "Error interno del servidor" });
     }
 }
-

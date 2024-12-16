@@ -11,7 +11,7 @@ model usuario {
   cod_usuario   Int      @id @default(autoincrement())
   nombre        String
   apellido      String
-  CID           Int
+  CID           Int      @unique
   telefono      Int
   email         String   @unique
   rol           Rol // Enum: CUIDADOR, FAMILIAR, PROFESIONAL
@@ -71,6 +71,7 @@ model medicamento {
   receta_id       Int
 
   recordatorio         recordatorio[]
+  recetamedi           receta         @relation(fields: [receta_id], references: [cod_receta])
   paciente             paciente?      @relation(fields: [pacienteCod_paciente], references: [cod_paciente])
   pacienteCod_paciente Int?
 }
@@ -81,8 +82,9 @@ model receta {
   persona_id     Int
   profesional_id Int
 
-  persona     paciente @relation(fields: [persona_id], references: [cod_paciente])
-  profesional usuario  @relation(fields: [profesional_id], references: [cod_usuario])
+  persona     paciente      @relation(fields: [persona_id], references: [cod_paciente])
+  profesional usuario       @relation(fields: [profesional_id], references: [cod_usuario])
+  medicamento medicamento[]
 }
 
 model citamedica {
