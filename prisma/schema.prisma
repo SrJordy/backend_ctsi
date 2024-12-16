@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model usuario {
+  cod_usuario   Int      @id @default(autoincrement())
+  nombre        String
+  apellido      String
+  CID           Int
+  telefono      Int
+  email         String   @unique
+  rol           Rol // Enum: CUIDADOR, FAMILIAR, PROFESIONAL
+  password      String
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  paciente        paciente[]
+  citamedica      citamedica[]
+  historialmedico historialmedico[]
+}
+
+model paciente {
+  cod_paciente    Int               @id @default(autoincrement())
+  nombre          String
+  apellido        String
+  CID             Int
+  telefono        Int
+  fecha_nac       DateTime
+  genero          String
+  direccion       String?
+  cuidador_id     Int
+  creadoEn        DateTime          @default(now())
+  actualizadoEn   DateTime          @updatedAt
+  cuidador        usuario           @relation(fields: [cuidador_id], references: [cod_usuario])
+  recordatorio    recordatorio[]
+  medicamento     medicamento[]
+  citamedica      citamedica[]
+  historialmedico historialmedico[]
+}
+
+model recordatorio {
+  cod_recordatorio Int      @id @default(autoincrement())
+  titulo           String
+  descripcion      String
+  fechahora        DateTime
+  medicamento_id   Int
+  persona_id       Int
+  estado           Boolean  @default(true)
+  creadoEn         DateTime @default(now())
+
+  medicina medicamento @relation(fields: [medicamento_id], references: [cod_medicamento])
+  persona  paciente    @relation(fields: [persona_id], references: [cod_paciente])
+}
+
+model medicamento {
+  cod_medicamento Int    @id @default(autoincrement())
+  nombre          String
+  persona_id      Int
+  dosis           String
+  frecuenciamin   Int
+  cantidadtotal   Int
+  receta_id       Int
+
+  persona      paciente       @relation(fields: [persona_id], references: [cod_paciente])
+  recordatorio recordatorio[]
+}
+
+model citamedica {
+  cod_cita       Int      @id @default(autoincrement())
+  fechahora      DateTime
+  lugar          String
+  motivo         String
+  profesional_id Int
+  persona_id     Int
+  status         Boolean  @default(true)
+
+  profesion usuario  @relation(fields: [profesional_id], references: [cod_usuario])
+  persona   paciente @relation(fields: [persona_id], references: [cod_paciente])
+}
+
+model historialmedico {
+  cod_historial    Int      @id @default(autoincrement())
+  descripcion      String?
+  presion_arterial String
+  peso             Float
+  estatura         Float
+  fecha            DateTime
+  profesional_id   Int
+  persona_id       Int
+
+  profesional usuario       @relation(fields: [profesional_id], references: [cod_usuario])
+  persona     paciente      @relation(fields: [persona_id], references: [cod_paciente])
+  diagnostico diagnostico[]
+}
+
+model diagnostico {
+  cod_diagnostico   Int      @id @default(autoincrement())
+  descripcion       String
+  fecha_diagnostico DateTime
+  historial_id      Int
+
+  historial historialmedico @relation(fields: [historial_id], references: [cod_historial])
+}
+
+enum Rol {
+  CUIDADOR
+  FAMILIAR
+  PROFESIONAL
+}
+
+enum TipoRecordatorio {
+  MEDICAMENTO
+  CITA
+  ACTIVIDAD
+}
