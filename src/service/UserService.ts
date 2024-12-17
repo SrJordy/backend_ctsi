@@ -33,7 +33,7 @@ export const getUser = async (criteria: { id?: number; nombre?: string; apellido
     }
 };
 
-export const createUser = async (data: Omit<usuario, "cod_usuario" | "creadoEn" | "actualizadoEn">): Promise<usuario> => {
+export const createUser = async (data: Omit<usuario, "cod_usuario" | "creadoEn" | "actualizadoEn" | "estado">): Promise<usuario> => {
     try {
         return await prisma.usuario.create({
             data,

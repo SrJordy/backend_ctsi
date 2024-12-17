@@ -38,7 +38,7 @@ export const getPaciente = async (criteria: { id?: number; CID?: number; nombre?
     }
 };
 
-export const createPaciente = async (data: Omit<paciente, "cod_paciente" | "creadoEn" | "actualizadoEn">): Promise<paciente> => {
+export const createPaciente = async (data: Omit<paciente, "cod_paciente" | "creadoEn" | "actualizadoEn"|"estado">): Promise<paciente> => {
     try {
         console.log("Datos enviados al servicio:", data);
         return await prisma.paciente.create({
