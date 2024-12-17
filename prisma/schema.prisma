@@ -103,6 +103,7 @@ model historialmedico {
   fecha            DateTime
   profesional_id   Int
   persona_id       Int
+  estado           Boolean  @default(true)
 
   profesional usuario       @relation(fields: [profesional_id], references: [cod_usuario])
   persona     paciente      @relation(fields: [persona_id], references: [cod_paciente])
