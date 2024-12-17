@@ -40,19 +40,17 @@ model paciente {
   actualizadoEn DateTime @updatedAt
   estado        Boolean  @default(true)
 
-  cuidador        usuario           @relation(fields: [cuidador_id], references: [cod_usuario])
-  recordatorio    recordatorio[]
+  cuidador        usuario                   @relation(fields: [cuidador_id], references: [cod_usuario])
+  recordatorio    recordatorioMedicamento[]
   citamedica      citamedica[]
   historialmedico historialmedico[]
   receta          receta[]
 }
 
-model recordatorio {
+model recordatorioMedicamento {
   cod_recordatorio Int      @id @default(autoincrement())
-  titulo           String
-  descripcion      String
-  fechahora        DateTime
   medicamento_id   Int
+  fechahora        DateTime
   persona_id       Int
   estado           Boolean  @default(true)
   creadoEn         DateTime @default(now())
@@ -62,15 +60,14 @@ model recordatorio {
 }
 
 model medicamento {
-  cod_medicamento Int    @id @default(autoincrement())
+  cod_medicamento Int                       @id @default(autoincrement())
   nombre          String
   descripcion     String
   frecuenciamin   Int
   cantidadtotal   Int
   receta_id       Int
-
-  recordatorio recordatorio[]
-  recetamedi   receta         @relation(fields: [receta_id], references: [cod_receta])
+  recordatorio    recordatorioMedicamento[]
+  recetamedi      receta                    @relation(fields: [receta_id], references: [cod_receta])
 }
 
 model receta {
@@ -146,9 +143,4 @@ model examenes {
 enum Rol {
   CUIDADOR
   PROFESIONAL
-}
-
-enum TipoRecordatorio {
-  MEDICAMENTO
-  CITA
 }
