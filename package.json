@@ -12,6 +12,7 @@
     "@prisma/client": "^6.0.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "jsonwebtoken": "^9.0.2",
     "next": "15.1.0",
     "prisma": "^6.0.1",
     "react": "^19.0.0",
@@ -20,6 +21,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
