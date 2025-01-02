@@ -12,7 +12,7 @@ model usuario {
   nombre        String
   apellido      String
   CID           Int      @unique
-  telefono      Int
+  telefono      String
   email         String   @unique
   rol           Rol // Enum: CUIDADOR, FAMILIAR, PROFESIONAL
   password      String
@@ -31,7 +31,7 @@ model paciente {
   nombre        String
   apellido      String
   CID           Int
-  telefono      Int
+  telefono      String
   fecha_nac     DateTime
   genero        String
   direccion     String?

@@ -1,7 +1,7 @@
 import prisma from "@/lib/Prisma";
 import { usuario, Rol } from "@prisma/client";
 import { IUserCreate, IUserUpdate, IUserSearch } from "@/lib/user";
-import { validateEmail, validatePhone, validatePassword } from "@/lib/validators";
+import { validateEmail, validatePhone} from "@/lib/validators";
 
 export class UserServiceError extends Error {
     constructor(message: string, public code: string) {
@@ -87,13 +87,6 @@ export class UserService {
                 );
             }
 
-            if (!validatePassword(data.password)) {
-                throw new UserServiceError(
-                    "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número",
-                    "INVALID_PASSWORD"
-                );
-            }
-
             // Verificar si ya existe un usuario con el mismo email o CID
             const existingUser = await prisma.usuario.findFirst({
                 where: {
@@ -154,12 +147,6 @@ export class UserService {
                 );
             }
 
-            if (data.password && !validatePassword(data.password)) {
-                throw new UserServiceError(
-                    "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número",
-                    "INVALID_PASSWORD"
-                );
-            }
 
             // Verificar duplicados solo si se está actualizando email o CID
             if (data.email || data.CID) {
