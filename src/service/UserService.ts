@@ -1,86 +1,259 @@
 import prisma from "@/lib/Prisma";
-import { usuario } from "@prisma/client";
+import { usuario, Rol } from "@prisma/client";
+import { IUserCreate, IUserUpdate, IUserSearch } from "@/lib/user";
+import { validateEmail, validatePhone, validatePassword } from "@/lib/validators";
 
-export const getAllUsers = async (): Promise<usuario[]> => {
-    try {
-        return await prisma.usuario.findMany({
-            where: { estado: true },
-        });
-    } catch (error) {
-        console.error("Error al obtener todos los usuarios:", error);
-        throw new Error("No se pudieron obtener los usuarios");
+export class UserServiceError extends Error {
+    constructor(message: string, public code: string) {
+        super(message);
+        this.name = 'UserServiceError';
     }
-};
+}
 
-export const getUser = async (criteria: { id?: number; nombre?: string; apellido?: string; CID?: number }): Promise<usuario | null> => {
-    try {
-        const { id, nombre, apellido, CID } = criteria;
-
-        return await prisma.usuario.findFirst({
-            where: {
-                OR: [
-                    { cod_usuario: id },
-                    { nombre: nombre },
-                    { apellido: apellido },
-                    { CID: CID },
-                ],
-                estado: true,
-            },
-        });
-    } catch (error) {
-        console.error("Error al obtener un usuario:", error);
-        throw new Error("No se pudo obtener el usuario");
-    }
-};
-
-export const createUser = async (data: Omit<usuario, "cod_usuario" | "creadoEn" | "actualizadoEn" | "estado">): Promise<usuario> => {
-    try {
-        return await prisma.usuario.create({
-            data,
-        });
-    } catch (error) {
-        console.error("Error al crear un usuario:", error);
-        throw new Error("No se pudo crear el usuario");
-    }
-};
-
-export const updateUser = async (id: number, data: Partial<Omit<usuario, "cod_usuario" | "creadoEn" | "actualizadoEn">>): Promise<usuario> => {
-    try {
-        const existingUser = await prisma.usuario.findUnique({
-            where: { cod_usuario: id },
-        });
-
-        if (!existingUser || !existingUser.estado) {
-            throw new Error("Usuario no encontrado o está inactivo");
+export class UserService {
+    static async getAllUsers(options?: { 
+        rol?: Rol, 
+        includeRelations?: boolean 
+    }): Promise<usuario[]> {
+        try {
+            return await prisma.usuario.findMany({
+                where: { 
+                    estado: true,
+                    ...(options?.rol && { rol: options.rol })
+                },
+                ...(options?.includeRelations && {
+                    include: {
+                        paciente: true,
+                        citamedica: true,
+                        historialmedico: true,
+                        receta: true,
+                    }
+                })
+            });
+        } catch (error) {
+            throw new UserServiceError(
+                "Error al obtener usuarios",
+                "FETCH_ERROR"
+            );
         }
-
-        return await prisma.usuario.update({
-            where: { cod_usuario: id },
-            data,
-        });
-    } catch (error) {
-        console.error("Error al actualizar un usuario:", error);
-        throw new Error("No se pudo actualizar el usuario");
     }
-};
 
+    static async getUser(criteria: IUserSearch): Promise<usuario | null> {
+        try {
+            const { id, nombre, apellido, CID, email } = criteria;
 
-export const deleteUser = async (idusuario: number): Promise<usuario> => {
-    try {
-        const existingUser = await prisma.usuario.findUnique({
-            where: { cod_usuario: idusuario },
-        });
+            const user = await prisma.usuario.findFirst({
+                where: {
+                    OR: [
+                        { cod_usuario: id },
+                        { nombre: { contains: nombre, mode: 'insensitive' } },
+                        { apellido: { contains: apellido, mode: 'insensitive' } },
+                        { CID },
+                        { email },
+                    ].filter(Boolean),
+                    estado: true,
+                },
+                include: {
+                    paciente: true,
+                    citamedica: true,
+                    historialmedico: true,
+                    receta: true,
+                }
+            });
 
-        if (!existingUser || !existingUser.estado) {
-            throw new Error("Usuario no encontrado o ya está inactivo");
+            return user;
+        } catch (error) {
+            throw new UserServiceError(
+                "Error al buscar usuario",
+                "SEARCH_ERROR"
+            );
         }
-
-        return await prisma.usuario.update({
-            where: { cod_usuario: idusuario },
-            data: { estado: false },
-        });
-    } catch (error) {
-        console.error("Error al eliminar (inactivar) un usuario:", error);
-        throw new Error("No se pudo inactivar el usuario");
     }
-};
+
+    static async createUser(data: IUserCreate): Promise<usuario> {
+        try {
+            // Validaciones
+            if (!validateEmail(data.email)) {
+                throw new UserServiceError(
+                    "Email inválido",
+                    "INVALID_EMAIL"
+                );
+            }
+
+            if (!validatePhone(data.telefono)) {
+                throw new UserServiceError(
+                    "Número de teléfono inválido",
+                    "INVALID_PHONE"
+                );
+            }
+
+            if (!validatePassword(data.password)) {
+                throw new UserServiceError(
+                    "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número",
+                    "INVALID_PASSWORD"
+                );
+            }
+
+            // Verificar si ya existe un usuario con el mismo email o CID
+            const existingUser = await prisma.usuario.findFirst({
+                where: {
+                    OR: [
+                        { email: data.email },
+                        { CID: data.CID }
+                    ],
+                    estado: true
+                }
+            });
+
+            if (existingUser) {
+                throw new UserServiceError(
+                    "Ya existe un usuario con ese email o CID",
+                    "DUPLICATE_USER"
+                );
+            }
+
+            return await prisma.usuario.create({
+                data: {
+                    ...data,
+                    estado: true
+                }
+            });
+        } catch (error) {
+            if (error instanceof UserServiceError) throw error;
+            throw new UserServiceError(
+                "Error al crear usuario",
+                "CREATE_ERROR"
+            );
+        }
+    }
+
+    static async updateUser(id: number, data: IUserUpdate): Promise<usuario> {
+        try {
+            const existingUser = await prisma.usuario.findUnique({
+                where: { cod_usuario: id }
+            });
+
+            if (!existingUser || !existingUser.estado) {
+                throw new UserServiceError(
+                    "Usuario no encontrado",
+                    "NOT_FOUND"
+                );
+            }
+
+            if (data.email && !validateEmail(data.email)) {
+                throw new UserServiceError(
+                    "Email inválido",
+                    "INVALID_EMAIL"
+                );
+            }
+
+            if (data.telefono && !validatePhone(data.telefono)) {
+                throw new UserServiceError(
+                    "Número de teléfono inválido",
+                    "INVALID_PHONE"
+                );
+            }
+
+            if (data.password && !validatePassword(data.password)) {
+                throw new UserServiceError(
+                    "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número",
+                    "INVALID_PASSWORD"
+                );
+            }
+
+            // Verificar duplicados solo si se está actualizando email o CID
+            if (data.email || data.CID) {
+                const duplicateUser = await prisma.usuario.findFirst({
+                    where: {
+                        OR: [
+                            data.email ? { email: data.email } : {},
+                            data.CID ? { CID: data.CID } : {}
+                        ],
+                        NOT: {
+                            cod_usuario: id
+                        },
+                        estado: true
+                    }
+                });
+
+                if (duplicateUser) {
+                    throw new UserServiceError(
+                        "Ya existe un usuario con ese email o CID",
+                        "DUPLICATE_USER"
+                    );
+                }
+            }
+
+            return await prisma.usuario.update({
+                where: { cod_usuario: id },
+                data
+            });
+        } catch (error) {
+            if (error instanceof UserServiceError) throw error;
+            throw new UserServiceError(
+                "Error al actualizar usuario",
+                "UPDATE_ERROR"
+            );
+        }
+    }
+
+    static async deleteUser(id: number): Promise<usuario> {
+        try {
+            const existingUser = await prisma.usuario.findUnique({
+                where: { cod_usuario: id }
+            });
+
+            if (!existingUser || !existingUser.estado) {
+                throw new UserServiceError(
+                    "Usuario no encontrado",
+                    "NOT_FOUND"
+                );
+            }
+
+            // Verificar si el usuario tiene relaciones activas
+            const hasActiveRelations = await this.checkActiveRelations(id);
+            if (hasActiveRelations) {
+                throw new UserServiceError(
+                    "No se puede eliminar el usuario porque tiene registros asociados activos",
+                    "ACTIVE_RELATIONS"
+                );
+            }
+
+            return await prisma.usuario.update({
+                where: { cod_usuario: id },
+                data: { estado: false }
+            });
+        } catch (error) {
+            if (error instanceof UserServiceError) throw error;
+            throw new UserServiceError(
+                "Error al eliminar usuario",
+                "DELETE_ERROR"
+            );
+        }
+    }
+
+    private static async checkActiveRelations(userId: number): Promise<boolean> {
+        const relations = await prisma.usuario.findUnique({
+            where: { cod_usuario: userId },
+            include: {
+                paciente: {
+                    where: { estado: true }
+                },
+                citamedica: {
+                    where: { status: true }
+                },
+                historialmedico: {
+                    where: { estado: true }
+                },
+                receta: true
+            }
+        });
+
+        return !!(
+            relations?.paciente.length ||
+            relations?.citamedica.length ||
+            relations?.historialmedico.length ||
+            relations?.receta.length
+        );
+    }
+}

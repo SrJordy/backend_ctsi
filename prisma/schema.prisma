@@ -100,6 +100,8 @@ model historialmedico {
   presion_arterial String
   peso             Float
   estatura         Float
+  temperatura      Float?
+  nivel_glucosa    Float?
   fecha            DateTime
   profesional_id   Int
   persona_id       Int

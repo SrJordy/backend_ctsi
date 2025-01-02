@@ -10,35 +10,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         switch (method) {
             case "GET":
-                if (id || nombre || apellido || CID || telefono || email) {
-                    return await UserController.getUser(req, res);
-                } else {
+                if (!id && !nombre && !apellido && !CID && !telefono && !email) {
                     return await UserController.getUsers(req, res);
+                } else {
+                    return await UserController.getUser(req, res);
                 }
 
             case "POST":
                 return await UserController.createUser(req, res);
 
             case "PUT":
-                if (id) {
-                    return await UserController.updateUser(req, res);
-                } else {
-                    return res.status(400).json({ message: "El ID es requerido para realizar la actualización" });
+                if (!id) {
+                    return res.status(400).json({ 
+                        error: "El ID es requerido para realizar la actualización",
+                        code: "MISSING_ID"
+                    });
                 }
+                return await UserController.updateUser(req, res);
 
             case "DELETE":
-                if (id) {
-                    return await UserController.deleteUser(req, res);
-                } else {
-                    return res.status(400).json({ message: "El ID es requerido para eliminar un usuario" });
+                if (!id) {
+                    return res.status(400).json({ 
+                        error: "El ID es requerido para eliminar un usuario",
+                        code: "MISSING_ID"
+                    });
                 }
+                return await UserController.deleteUser(req, res);
 
             default:
-                return res.status(405).json({ message: "Método no permitido" });
+                return res.status(405).json({ 
+                    error: "Método no permitido",
+                    code: "METHOD_NOT_ALLOWED"
+                });
         }
     } catch (error) {
         console.error("Error en la API handler:", error);
-        return res.status(500).json({ error: "Error interno del servidor" });
+        return res.status(500).json({ 
+            error: "Error interno del servidor",
+            code: "INTERNAL_SERVER_ERROR"
+        });
     }
 }
-
