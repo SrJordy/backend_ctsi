@@ -2,86 +2,156 @@ import prisma from "@/lib/Prisma";
 import { historialmedico } from "@prisma/client";
 
 export const getAllHistoriales = async (): Promise<historialmedico[]> => {
-    return await prisma.historialmedico.findMany({
-        where:{estado:true},
-        include: {
-            profesional: true,
-            persona: true,
-            diagnostico: true,
-            tratamiento: true,
-            examenes: true,
-        },
-    });
+    try {
+        return await prisma.historialmedico.findMany({
+            where: { estado: true },
+            include: {
+                profesional: {
+                    select: {
+                        nombre: true,
+                        apellido: true,
+                        email: true
+                    }
+                },
+                persona: {
+                    select: {
+                        nombre: true,
+                        apellido: true,
+                        fecha_nac: true
+                    }
+                },
+                diagnostico: true,
+                tratamiento: true,
+                examenes: true
+            },
+            orderBy: { fecha: 'desc' }
+        });
+    } catch (error) {
+        console.error('Error en getAllHistoriales:', error);
+        throw new Error('Error al obtener historiales médicos');
+    }
 };
 
 export const getHistorial = async (id: number): Promise<historialmedico | null> => {
-    const historial = await prisma.historialmedico.findUnique({
-        where: { cod_historial: id , estado:true},
-        include: {
-            profesional: true,
-            persona: true,
-            diagnostico: true,
-            tratamiento: true,
-            examenes: true,
-        },
-    });
-    if (!historial) throw new Error("Historial no encontrado");
-    return historial;
+    try {
+        const historial = await prisma.historialmedico.findUnique({
+            where: { 
+                cod_historial: id,
+                estado: true 
+            },
+            include: {
+                profesional: {
+                    select: {
+                        nombre: true,
+                        apellido: true,
+                        email: true
+                    }
+                },
+                persona: {
+                    select: {
+                        nombre: true,
+                        apellido: true,
+                        fecha_nac: true
+                    }
+                },
+                diagnostico: true,
+                tratamiento: true,
+                examenes: true
+            }
+        });
+
+        if (!historial) throw new Error('Historial no encontrado');
+        return historial;
+    } catch (error) {
+        console.error('Error en getHistorial:', error);
+        throw error;
+    }
 };
 
-export const createHistorial = async (
-    data: Omit<historialmedico, "cod_historial">
-): Promise<historialmedico> => {
-    const { profesional_id, persona_id, fecha, presion_arterial, peso, estatura, descripcion } = data;
-    if (!profesional_id || !persona_id || !fecha || !presion_arterial || !peso || !estatura)
-        throw new Error("Faltan datos requeridos");
-    const profesionalExists = await prisma.usuario.findUnique({
-        where: { cod_usuario: profesional_id },
-    });
-    if (!profesionalExists) throw new Error("El profesional no existe");
-    const personaExists = await prisma.paciente.findUnique({
-        where: { cod_paciente: persona_id },
-    });
-    if (!personaExists) throw new Error("La persona no existe");
-    return await prisma.historialmedico.create({
-        data,
-    });
+export const createHistorial = async (data: {
+    descripcion?: string;
+    tipo_sangre?: string;
+    presion_arterial: string;
+    peso: number;
+    estatura: number;
+    temperatura?: number;
+    nivel_glucosa?: number;
+    fecha: Date;
+    profesional_id: number;
+    persona_id: number;
+}): Promise<historialmedico> => {
+    try {
+        const [profesional, paciente] = await Promise.all([
+            prisma.usuario.findUnique({
+                where: { cod_usuario: data.profesional_id }
+            }),
+            prisma.paciente.findUnique({
+                where: { cod_paciente: data.persona_id }
+            })
+        ]);
+
+        if (!profesional) throw new Error('Profesional no encontrado');
+        if (!paciente) throw new Error('Paciente no encontrado');
+
+        return await prisma.historialmedico.create({
+            data: {
+                ...data,
+                estado: true
+            },
+            include: {
+                profesional: true,
+                persona: true
+            }
+        });
+    } catch (error) {
+        console.error('Error en createHistorial:', error);
+        throw error;
+    }
 };
 
 export const updateHistorial = async (
     id: number,
     data: Partial<Omit<historialmedico, "cod_historial">>
 ): Promise<historialmedico> => {
-    const existingHistorial = await prisma.historialmedico.findUnique({
-        where: { cod_historial: id },
-    });
-    if (!existingHistorial) throw new Error("Historial no encontrado");
-    if (data.profesional_id) {
-        const profesionalExists = await prisma.usuario.findUnique({
-            where: { cod_usuario: data.profesional_id },
+    try {
+        const historial = await prisma.historialmedico.findUnique({
+            where: { cod_historial: id }
         });
-        if (!profesionalExists) throw new Error("El profesional no existe");
-    }
-    if (data.persona_id) {
-        const personaExists = await prisma.paciente.findUnique({
-            where: { cod_paciente: data.persona_id },
+
+        if (!historial || !historial.estado) {
+            throw new Error('Historial no encontrado');
+        }
+
+        return await prisma.historialmedico.update({
+            where: { cod_historial: id },
+            data,
+            include: {
+                profesional: true,
+                persona: true
+            }
         });
-        if (!personaExists) throw new Error("La persona no existe");
+    } catch (error) {
+        console.error('Error en updateHistorial:', error);
+        throw error;
     }
-    return await prisma.historialmedico.update({
-        where: { cod_historial: id },
-        data,
-    });
 };
 
 export const deleteHistorial = async (id: number): Promise<historialmedico> => {
-    const existingHistorial = await prisma.historialmedico.findUnique({
-        where: { cod_historial: id, estado: true },
-    });
-    if (!existingHistorial) throw new Error("Historial no encontrado");
+    try {
+        const historial = await prisma.historialmedico.findUnique({
+            where: { cod_historial: id }
+        });
 
-    return await prisma.historialmedico.update({
-        where: { cod_historial: id },
-        data: { estado: false },
-    });
+        if (!historial || !historial.estado) {
+            throw new Error('Historial no encontrado');
+        }
+
+        return await prisma.historialmedico.update({
+            where: { cod_historial: id },
+            data: { estado: false }
+        });
+    } catch (error) {
+        console.error('Error en deleteHistorial:', error);
+        throw error;
+    }
 };

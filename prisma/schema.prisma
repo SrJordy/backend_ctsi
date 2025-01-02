@@ -97,6 +97,7 @@ model citamedica {
 model historialmedico {
   cod_historial    Int      @id @default(autoincrement())
   descripcion      String?
+  tipo_sangre      String?
   presion_arterial String
   peso             Float
   estatura         Float

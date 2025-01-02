@@ -87,6 +87,7 @@ export class PacienteController {
                 cuidador_id
             } = req.body;
 
+            console.log(req.body);
             if (!nombre?.trim() || !apellido?.trim() || !CID || !telefono?.trim() || 
                 !fecha_nac || !genero?.trim() || !cuidador_id) {
                 return res.status(400).json({
