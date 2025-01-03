@@ -13,13 +13,7 @@ export const getAllHistoriales = async (): Promise<historialmedico[]> => {
                         email: true
                     }
                 },
-                persona: {
-                    select: {
-                        nombre: true,
-                        apellido: true,
-                        fecha_nac: true
-                    }
-                },
+                persona: true,
                 diagnostico: true,
                 tratamiento: true,
                 examenes: true
@@ -40,18 +34,13 @@ export const getHistorial = async (id: number): Promise<historialmedico | null> 
                 estado: true 
             },
             include: {
+                
+                persona: true,
                 profesional: {
                     select: {
                         nombre: true,
                         apellido: true,
                         email: true
-                    }
-                },
-                persona: {
-                    select: {
-                        nombre: true,
-                        apellido: true,
-                        fecha_nac: true
                     }
                 },
                 diagnostico: true,
