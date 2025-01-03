@@ -1,60 +1,130 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import * as RecordatorioService from "../service/RecordatorioService";
+import { NextApiRequest, NextApiResponse } from 'next';
+import { RecordatorioService } from '@/service/RecordatorioService';
+import { RecordatorioServiceError } from '@/lib/RecordatorioServiceError';
 
-export const getRecordatorios = async (req: NextApiRequest, res: NextApiResponse) => {
+const recordatorioService = new RecordatorioService();
+
+export async function createRecordatorio(req: NextApiRequest, res: NextApiResponse) {
     try {
-        const recordatorios = await RecordatorioService.getAllRecordatorios();
+        console.log('Datos recibidos en createRecordatorio:', req.body);
+        const recordatorio = await recordatorioService.createRecordatorio(req.body);
+        console.log('Recordatorio creado:', recordatorio);
+        return res.status(201).json(recordatorio);
+    } catch (error) {
+        console.error('Error en createRecordatorio controller:', error);
+        if (error instanceof RecordatorioServiceError) {
+            return res.status(400).json({ 
+                error: error.message,
+                code: error.code 
+            });
+        }
+        return res.status(500).json({ 
+            error: 'Error interno del servidor',
+            code: 'INTERNAL_ERROR'
+        });
+    }
+}
+
+export async function getRecordatorios(req: NextApiRequest, res: NextApiResponse) {
+    try {
+        const recordatorios = await recordatorioService.getRecordatorios();
         return res.status(200).json(recordatorios);
     } catch (error) {
-        return res.status(500).json({ error: "Error buscando recordatorios" });
+        console.error('Error en getRecordatorios controller:', error);
+        if (error instanceof RecordatorioServiceError) {
+            return res.status(400).json({ 
+                error: error.message,
+                code: error.code 
+            });
+        }
+        return res.status(500).json({ 
+            error: 'Error interno del servidor',
+            code: 'INTERNAL_ERROR'
+        });
     }
-};
+}
 
-export const getRecordatorio = async (req: NextApiRequest, res: NextApiResponse) => {
-    const { id } = req.query;
+export async function getRecordatorio(req: NextApiRequest, res: NextApiResponse) {
     try {
-        const recordatorio = await RecordatorioService.getRecordatorio(Number(id));
+        const id = Number(req.query.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ 
+                error: 'ID inválido',
+                code: 'INVALID_ID'
+            });
+        }
+
+        const recordatorio = await recordatorioService.getRecordatorio(id);
         return res.status(200).json(recordatorio);
     } catch (error) {
-        return res.status(404).json({ error: "Recordatorio no encontrado" });
-    }
-};
-
-export const createRecordatorio = async (req: NextApiRequest, res: NextApiResponse) => {
-    try {
-        const { medicamento_id, fechahora, persona_id } = req.body;
-        const newRecordatorio = await RecordatorioService.createRecordatorio({
-            medicamento_id,
-            fechahora: new Date(fechahora),
-            persona_id
+        console.error('Error en getRecordatorio controller:', error);
+        if (error instanceof RecordatorioServiceError) {
+            return res.status(400).json({ 
+                error: error.message,
+                code: error.code 
+            });
+        }
+        return res.status(500).json({ 
+            error: 'Error interno del servidor',
+            code: 'INTERNAL_ERROR'
         });
-        return res.status(201).json(newRecordatorio);
-    } catch (error) {
-        return res.status(500).json({ error: "Error creando recordatorio" });
     }
-};
+}
 
-export const updateRecordatorio = async (req: NextApiRequest, res: NextApiResponse) => {
-    const { id } = req.query;
+export async function updateRecordatorio(req: NextApiRequest, res: NextApiResponse) {
     try {
-        const { medicamento_id, fechahora, persona_id, estado } = req.body;
-        const updatedRecordatorio = await RecordatorioService.updateRecordatorio(Number(id), {
-            medicamento_id,
-            fechahora: fechahora ? new Date(fechahora) : undefined,
-            persona_id
+        const id = Number(req.query.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ 
+                error: 'ID inválido',
+                code: 'INVALID_ID'
+            });
+        }
+
+        console.log('Datos recibidos en updateRecordatorio:', { id, data: req.body });
+        const recordatorio = await recordatorioService.updateRecordatorio(id, req.body);
+        console.log('Recordatorio actualizado:', recordatorio);
+        return res.status(200).json(recordatorio);
+    } catch (error) {
+        console.error('Error en updateRecordatorio controller:', error);
+        if (error instanceof RecordatorioServiceError) {
+            return res.status(400).json({ 
+                error: error.message,
+                code: error.code 
+            });
+        }
+        return res.status(500).json({ 
+            error: 'Error interno del servidor',
+            code: 'INTERNAL_ERROR'
         });
-        return res.status(200).json(updatedRecordatorio);
-    } catch (error) {
-        return res.status(500).json({ error: "Error actualizando recordatorio" });
     }
-};
+}
 
-export const deleteRecordatorio = async (req: NextApiRequest, res: NextApiResponse) => {
-    const { id } = req.query;
+export async function deleteRecordatorio(req: NextApiRequest, res: NextApiResponse) {
     try {
-        const deletedRecordatorio = await RecordatorioService.deleteRecordatorio(Number(id));
-        return res.status(200).json({ message: "Recordatorio eliminado correctamente", recordatorio: deletedRecordatorio });
+        const id = Number(req.query.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ 
+                error: 'ID inválido',
+                code: 'INVALID_ID'
+            });
+        }
+
+        await recordatorioService.deleteRecordatorio(id);
+        return res.status(200).json({ 
+            message: 'Recordatorio eliminado correctamente'
+        });
     } catch (error) {
-        return res.status(500).json({ error: "Error eliminando recordatorio" });
+        console.error('Error en deleteRecordatorio controller:', error);
+        if (error instanceof RecordatorioServiceError) {
+            return res.status(400).json({ 
+                error: error.message,
+                code: error.code 
+            });
+        }
+        return res.status(500).json({ 
+            error: 'Error interno del servidor',
+            code: 'INTERNAL_ERROR'
+        });
     }
-};
+}

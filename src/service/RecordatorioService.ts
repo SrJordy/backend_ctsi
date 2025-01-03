@@ -1,120 +1,174 @@
-import prisma from "@/lib/Prisma";
-import { recordatorioMedicamento } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
+import { RecordatorioServiceError } from '@/lib/RecordatorioServiceError';
 
-export const getAllRecordatorios = async (): Promise<recordatorioMedicamento[]> => {
-    try {
-        return await prisma.recordatorioMedicamento.findMany({
-            include: {
-                medicina: true,
-                persona: true,
-            },
-        });
-    } catch (error) {
-        console.error("Error al obtener todos los recordatorios:", error);
-        throw new Error("No se pudieron obtener los recordatorios");
-    }
-};
+const prisma = new PrismaClient();
 
-export const getRecordatorio = async (id: number): Promise<recordatorioMedicamento | null> => {
-    try {
-        const recordatorio = await prisma.recordatorioMedicamento.findUnique({
-            where: { cod_recordatorio: id },
-            include: {
-                medicina: true,
-                persona: true,
-            },
-        });
-        if (!recordatorio) {
-            throw new Error("Recordatorio no encontrado");
-        }
-        return recordatorio;
-    } catch (error) {
-        console.error("Error al obtener el recordatorio:", error);
-        throw new Error("No se pudo obtener el recordatorio");
-    }
-};
+export interface CreateRecordatorioInput {
+    medicamento_id: number;
+    fechahora: Date;
+    persona_id: number;
+}
 
-export const createRecordatorio = async (
-    data: Omit<recordatorioMedicamento, "cod_recordatorio" | "creadoEn">
-): Promise<recordatorioMedicamento> => {
-    try {
-        const { medicamento_id, fechahora, persona_id } = data;
-        if (!medicamento_id || !fechahora || !persona_id) {
-            throw new Error("Faltan datos requeridos: medicamento_id, fechahora o persona_id");
-        }
-        const medicamentoExists = await prisma.medicamento.findUnique({
-            where: { cod_medicamento: medicamento_id },
-        });
-        if (!medicamentoExists) {
-            throw new Error("El medicamento especificado no existe");
-        }
-        const personaExists = await prisma.paciente.findUnique({
-            where: { cod_paciente: persona_id },
-        });
-        if (!personaExists) {
-            throw new Error("La persona especificada no existe");
-        }
-        return await prisma.recordatorioMedicamento.create({
-            data,
-        });
-    } catch (error) {
-        console.error("Error al crear un recordatorio:", error);
-        throw new Error("No se pudo crear el recordatorio");
-    }
-};
+export interface UpdateRecordatorioInput {
+    medicamento_id?: number;
+    fechahora?: Date;
+    persona_id?: number;
+    estado?: boolean;
+}
 
-export const updateRecordatorio = async (
-    id: number,
-    data: Partial<Omit<recordatorioMedicamento, "cod_recordatorio" | "creadoEn">>
-): Promise<recordatorioMedicamento> => {
-    try {
-        const existingRecordatorio = await prisma.recordatorioMedicamento.findUnique({
-            where: { cod_recordatorio: id },
-        });
-        if (!existingRecordatorio) {
-            throw new Error("Recordatorio no encontrado");
-        }
-        if (data.medicamento_id) {
-            const medicamentoExists = await prisma.medicamento.findUnique({
-                where: { cod_medicamento: data.medicamento_id },
+export class RecordatorioService {
+    async createRecordatorio(data: CreateRecordatorioInput) {
+        try {
+            // Validar que el medicamento existe
+            const medicamento = await prisma.medicamento.findUnique({
+                where: { cod_medicamento: data.medicamento_id }
             });
-            if (!medicamentoExists) {
-                throw new Error("El medicamento especificado no existe");
+            if (!medicamento) {
+                throw new RecordatorioServiceError('MEDICAMENTO_NOT_FOUND', 'El medicamento no existe');
             }
-        }
-        if (data.persona_id) {
-            const personaExists = await prisma.paciente.findUnique({
-                where: { cod_paciente: data.persona_id },
+
+            // Validar que el paciente existe
+            const paciente = await prisma.paciente.findUnique({
+                where: { cod_paciente: data.persona_id }
             });
-            if (!personaExists) {
-                throw new Error("La persona especificada no existe");
+            if (!paciente) {
+                throw new RecordatorioServiceError('PACIENTE_NOT_FOUND', 'El paciente no existe');
             }
-        }
-        return await prisma.recordatorioMedicamento.update({
-            where: { cod_recordatorio: id },
-            data,
-        });
-    } catch (error) {
-        console.error("Error al actualizar el recordatorio:", error);
-        throw new Error("No se pudo actualizar el recordatorio");
-    }
-};
 
-export const deleteRecordatorio = async (id: number): Promise<recordatorioMedicamento> => {
-    try {
-        const existingRecordatorio = await prisma.recordatorioMedicamento.findUnique({
-            where: { cod_recordatorio: id },
-        });
-        if (!existingRecordatorio) {
-            throw new Error("Recordatorio no encontrado");
-        }
-        return await prisma.recordatorioMedicamento.update({
-            where: { cod_recordatorio: id },
-            data: { estado: false },
-        });
-    } catch (error) {
-        console.error("Error al eliminar el recordatorio:", error);
-        throw new Error("No se pudo eliminar el recordatorio");
-    }
-};
+            const recordatorio = await prisma.recordatorioMedicamento.create({
+                data: {
+                    medicamento_id: data.medicamento_id,
+                    fechahora: new Date(data.fechahora),
+                    persona_id: data.persona_id,
+                    estado: true
+                },
+                include: {
+                    medicina: true,
+                    persona: true
+                }
+            });
 
+            return recordatorio;
+        } catch (error) {
+            console.error('Error en createRecordatorio:', error);
+            if (error instanceof RecordatorioServiceError) {
+                throw error;
+            }
+            throw new RecordatorioServiceError('CREATE_ERROR', 'Error al crear el recordatorio');
+        }
+    }
+
+    async getRecordatorios() {
+        try {
+            return await prisma.recordatorioMedicamento.findMany({
+                include: {
+                    medicina: true,
+                    persona: true
+                }
+            });
+        } catch (error) {
+            console.error('Error en getRecordatorios:', error);
+            throw new RecordatorioServiceError('FETCH_ERROR', 'Error al obtener los recordatorios');
+        }
+    }
+
+    async getRecordatorio(id: number) {
+        try {
+            const recordatorio = await prisma.recordatorioMedicamento.findUnique({
+                where: { cod_recordatorio: id },
+                include: {
+                    medicina: true,
+                    persona: true
+                }
+            });
+
+            if (!recordatorio) {
+                throw new RecordatorioServiceError('NOT_FOUND', 'Recordatorio no encontrado');
+            }
+
+            return recordatorio;
+        } catch (error) {
+            console.error('Error en getRecordatorio:', error);
+            if (error instanceof RecordatorioServiceError) {
+                throw error;
+            }
+            throw new RecordatorioServiceError('FETCH_ERROR', 'Error al obtener el recordatorio');
+        }
+    }
+
+    async updateRecordatorio(id: number, data: UpdateRecordatorioInput) {
+        try {
+            // Verificar si el recordatorio existe
+            const existingRecordatorio = await prisma.recordatorioMedicamento.findUnique({
+                where: { cod_recordatorio: id }
+            });
+
+            if (!existingRecordatorio) {
+                throw new RecordatorioServiceError('NOT_FOUND', 'Recordatorio no encontrado');
+            }
+
+            // Si se actualiza el medicamento, verificar que existe
+            if (data.medicamento_id) {
+                const medicamento = await prisma.medicamento.findUnique({
+                    where: { cod_medicamento: data.medicamento_id }
+                });
+                if (!medicamento) {
+                    throw new RecordatorioServiceError('MEDICAMENTO_NOT_FOUND', 'El medicamento no existe');
+                }
+            }
+
+            // Si se actualiza el paciente, verificar que existe
+            if (data.persona_id) {
+                const paciente = await prisma.paciente.findUnique({
+                    where: { cod_paciente: data.persona_id }
+                });
+                if (!paciente) {
+                    throw new RecordatorioServiceError('PACIENTE_NOT_FOUND', 'El paciente no existe');
+                }
+            }
+
+            return await prisma.recordatorioMedicamento.update({
+                where: { cod_recordatorio: id },
+                data: {
+                    ...data,
+                    fechahora: data.fechahora ? new Date(data.fechahora) : undefined
+                },
+                include: {
+                    medicina: true,
+                    persona: true
+                }
+            });
+        } catch (error) {
+            console.error('Error en updateRecordatorio:', error);
+            if (error instanceof RecordatorioServiceError) {
+                throw error;
+            }
+            throw new RecordatorioServiceError('UPDATE_ERROR', 'Error al actualizar el recordatorio');
+        }
+    }
+
+    async deleteRecordatorio(id: number) {
+        try {
+            // Verificar si el recordatorio existe
+            const recordatorio = await prisma.recordatorioMedicamento.findUnique({
+                where: { cod_recordatorio: id }
+            });
+
+            if (!recordatorio) {
+                throw new RecordatorioServiceError('NOT_FOUND', 'Recordatorio no encontrado');
+            }
+
+            // Realizar un soft delete actualizando el estado
+            return await prisma.recordatorioMedicamento.update({
+                where: { cod_recordatorio: id },
+                data: { estado: false }
+            });
+        } catch (error) {
+            console.error('Error en deleteRecordatorio:', error);
+            if (error instanceof RecordatorioServiceError) {
+                throw error;
+            }
+            throw new RecordatorioServiceError('DELETE_ERROR', 'Error al eliminar el recordatorio');
+        }
+    }
+}
