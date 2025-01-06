@@ -7,6 +7,7 @@ export const getAllRecetas = async (): Promise<receta[]> => {
             include: {
                 persona: true,
                 profesional: true,
+                medicamento: true,
             },
         });
     } catch (error) {
@@ -22,6 +23,7 @@ export const getReceta = async (id: number): Promise<receta | null> => {
             include: {
                 persona: true,
                 profesional: true,
+                medicamento: true,
             },
         });
     } catch (error) {
