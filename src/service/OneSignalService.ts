@@ -3,13 +3,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { JWT } from 'google-auth-library';
 
-const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID; // Obtener el App ID desde las variables de entorno
-const ONESIGNAL_SERVICE_ACCOUNT_PATH = path.resolve(__dirname, process.env.ONESIGNAL_SERVICE_ACCOUNT_PATH || ''); // Usar ruta absoluta
+const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID; 
+const ONESIGNAL_SERVICE_ACCOUNT_PATH = path.resolve(__dirname, process.env.ONESIGNAL_SERVICE_ACCOUNT_PATH || '');
 
-console.log(`Ruta del archivo de cuenta de servicio: ${ONESIGNAL_SERVICE_ACCOUNT_PATH}`); // Imprimir la ruta generada
+console.log(`Ruta del archivo de cuenta de servicio: ${ONESIGNAL_SERVICE_ACCOUNT_PATH}`);
 
 async function getAccessToken() {
-    // Verificar si el archivo existe antes de intentar abrirlo
+    
     if (!fs.existsSync(ONESIGNAL_SERVICE_ACCOUNT_PATH)) {
         throw new Error(`El archivo de cuenta de servicio no se encuentra en la ruta: ${ONESIGNAL_SERVICE_ACCOUNT_PATH}`);
     }
@@ -42,7 +42,7 @@ export async function sendNotification(title: string, message: string, playerIds
                 Authorization: `Bearer ${accessToken}`,
             },
         });
-        return response.data; // Retorna la respuesta de OneSignal
+        return response.data; 
     } catch (error) {
         console.error('Error al enviar la notificación:', error);
         throw new Error('Error al enviar la notificación');
