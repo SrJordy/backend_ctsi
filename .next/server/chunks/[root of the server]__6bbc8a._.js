@@ -228,18 +228,28 @@ module.exports = mod;
 var { r: __turbopack_require__, f: __turbopack_module_context__, i: __turbopack_import__, s: __turbopack_esm__, v: __turbopack_export_value__, n: __turbopack_export_namespace__, c: __turbopack_cache__, M: __turbopack_modules__, l: __turbopack_load__, j: __turbopack_dynamic__, P: __turbopack_resolve_absolute_path__, U: __turbopack_relative_url__, R: __turbopack_resolve_module_id_path__, b: __turbopack_worker_blob_url__, g: global, __dirname, x: __turbopack_external_require__, y: __turbopack_external_import__, z: __turbopack_require_stub__ } = __turbopack_context__;
 {
 __turbopack_esm__({
-    "default": (()=>corsMiddleware)
+    "default": (()=>__TURBOPACK__default__export__)
 });
 var __TURBOPACK__imported__module__$5b$externals$5d2f$cors__$5b$external$5d$__$28$cors$2c$__cjs$29$__ = __turbopack_import__("[externals]/cors [external] (cors, cjs)");
 ;
 const cors = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$cors__$5b$external$5d$__$28$cors$2c$__cjs$29$__["default"])({
     methods: [
-        "GET",
-        "POST",
-        "PUT",
-        "DELETE"
+        'GET',
+        'HEAD',
+        'PUT',
+        'PATCH',
+        'POST',
+        'DELETE',
+        'OPTIONS'
     ],
-    origin: "*"
+    origin: 'http://localhost:5173',
+    credentials: true,
+    optionsSuccessStatus: 200,
+    allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'X-Requested-With'
+    ]
 });
 function runMiddleware(req, res, fn) {
     return new Promise((resolve, reject)=>{
@@ -251,9 +261,21 @@ function runMiddleware(req, res, fn) {
         });
     });
 }
-async function corsMiddleware(req, res) {
+const corsMiddleware = async (req, res)=>{
+    if (req.method === 'OPTIONS') {
+        try {
+            await runMiddleware(req, res, cors);
+            res.status(200).end();
+            return;
+        } catch (error) {
+            console.error('Error en OPTIONS:', error);
+            res.status(500).end();
+            return;
+        }
+    }
     await runMiddleware(req, res, cors);
-}
+};
+const __TURBOPACK__default__export__ = corsMiddleware;
 }}),
 "[project]/src/pages/api/ApiTratamiento.ts [api] (ecmascript)": ((__turbopack_context__) => {
 "use strict";

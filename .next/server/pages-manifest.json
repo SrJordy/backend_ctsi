@@ -1,1 +1,4 @@
-{}
+{
+  "/api/send-notification": "pages/api/send-notification.js",
+  "/api/ApiTratamiento": "pages/api/ApiTratamiento.js"
+}

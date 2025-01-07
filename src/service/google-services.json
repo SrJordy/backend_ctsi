@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1009525597821",
+    "project_id": "ctsi-70446",
+    "storage_bucket": "ctsi-70446.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1009525597821:android:c7eb86d8b5413f79dcf314",
+        "android_client_info": {
+          "package_name": "com.mobileproyect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDG1ctxJNtljWMuVOXe6ZneYrHuYg9_HL4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

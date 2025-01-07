@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         switch (method) {
             case "GET":
                 if (id) {
-                    return await RecetaController.getReceta(req, res);
+                    return await RecetaController.getRecetaConMedicamentos(req, res);
                 } else {
                     return await RecetaController.getRecetas(req, res);
                 }

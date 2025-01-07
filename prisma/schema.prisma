@@ -75,6 +75,7 @@ model receta {
   fecha          DateTime @default(now())
   persona_id     Int
   profesional_id Int
+  status         Boolean  @default(true)
 
   persona     paciente      @relation(fields: [persona_id], references: [cod_paciente])
   profesional usuario       @relation(fields: [profesional_id], references: [cod_usuario])

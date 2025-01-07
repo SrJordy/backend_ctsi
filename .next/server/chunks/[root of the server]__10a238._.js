@@ -163,9 +163,14 @@ const cors = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$cors__$5b$ext
         'DELETE',
         'OPTIONS'
     ],
-    origin: '*',
+    origin: 'http://localhost:5173',
     credentials: true,
-    optionsSuccessStatus: 200
+    optionsSuccessStatus: 200,
+    allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'X-Requested-With'
+    ]
 });
 function runMiddleware(req, res, fn) {
     return new Promise((resolve, reject)=>{
@@ -178,6 +183,17 @@ function runMiddleware(req, res, fn) {
     });
 }
 const corsMiddleware = async (req, res)=>{
+    if (req.method === 'OPTIONS') {
+        try {
+            await runMiddleware(req, res, cors);
+            res.status(200).end();
+            return;
+        } catch (error) {
+            console.error('Error en OPTIONS:', error);
+            res.status(500).end();
+            return;
+        }
+    }
     await runMiddleware(req, res, cors);
 };
 const __TURBOPACK__default__export__ = corsMiddleware;

@@ -4,6 +4,7 @@ import { receta } from "@prisma/client";
 export const getAllRecetas = async (): Promise<receta[]> => {
     try {
         return await prisma.receta.findMany({
+            where: { status: true },
             include: {
                 persona: true,
                 profesional: true,
@@ -16,10 +17,26 @@ export const getAllRecetas = async (): Promise<receta[]> => {
     }
 };
 
+export const getRecetaConMedicamentos = async (id: number): Promise<receta | null> => {
+    try {
+        return await prisma.receta.findUnique({
+            where: { cod_receta: id, status: true }, 
+            include: {
+                persona: true,
+                profesional: true,
+                medicamento: true,
+            },
+        });
+    } catch (error) {
+        console.error("Error al obtener la receta con medicamentos:", error);
+        throw new Error("No se pudo obtener la receta con medicamentos");
+    }
+};
+
 export const getReceta = async (id: number): Promise<receta | null> => {
     try {
         return await prisma.receta.findUnique({
-            where: { cod_receta: id },
+            where: { cod_receta: id, status: true },
             include: {
                 persona: true,
                 profesional: true,
@@ -43,7 +60,7 @@ export const createReceta = async (data: Omit<receta, "cod_receta" | "fecha">): 
     }
 };
 
-export const updateReceta = async (id: number,data: Partial<Omit<receta, "cod_receta" | "fecha">>): Promise<receta> => {
+export const updateReceta = async (id: number, data: Partial<Omit<receta, "cod_receta" | "fecha">>): Promise<receta> => {
     try {
         const existingReceta = await prisma.receta.findUnique({
             where: { cod_receta: id },
@@ -69,8 +86,9 @@ export const deleteReceta = async (id: number): Promise<receta> => {
         if (!existingReceta) {
             throw new Error("Receta no encontrada");
         }
-        return await prisma.receta.delete({
+        return await prisma.receta.update({
             where: { cod_receta: id },
+            data: { status: false },
         });
     } catch (error) {
         console.error("Error al eliminar la receta:", error);

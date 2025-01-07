@@ -39,6 +39,7 @@ __turbopack_esm__({
     "deleteReceta": (()=>deleteReceta),
     "getAllRecetas": (()=>getAllRecetas),
     "getReceta": (()=>getReceta),
+    "getRecetaConMedicamentos": (()=>getRecetaConMedicamentos),
     "updateReceta": (()=>updateReceta)
 });
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$Prisma$2e$ts__$5b$api$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/src/lib/Prisma.ts [api] (ecmascript)");
@@ -46,6 +47,9 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$Prisma$2e$ts__
 const getAllRecetas = async ()=>{
     try {
         return await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$Prisma$2e$ts__$5b$api$5d$__$28$ecmascript$29$__["default"].receta.findMany({
+            where: {
+                status: true
+            },
             include: {
                 persona: true,
                 profesional: true,
@@ -57,11 +61,30 @@ const getAllRecetas = async ()=>{
         throw new Error("No se pudieron obtener las recetas");
     }
 };
+const getRecetaConMedicamentos = async (id)=>{
+    try {
+        return await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$Prisma$2e$ts__$5b$api$5d$__$28$ecmascript$29$__["default"].receta.findUnique({
+            where: {
+                cod_receta: id,
+                status: true
+            },
+            include: {
+                persona: true,
+                profesional: true,
+                medicamento: true
+            }
+        });
+    } catch (error) {
+        console.error("Error al obtener la receta con medicamentos:", error);
+        throw new Error("No se pudo obtener la receta con medicamentos");
+    }
+};
 const getReceta = async (id)=>{
     try {
         return await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$Prisma$2e$ts__$5b$api$5d$__$28$ecmascript$29$__["default"].receta.findUnique({
             where: {
-                cod_receta: id
+                cod_receta: id,
+                status: true
             },
             include: {
                 persona: true,
@@ -115,9 +138,12 @@ const deleteReceta = async (id)=>{
         if (!existingReceta) {
             throw new Error("Receta no encontrada");
         }
-        return await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$Prisma$2e$ts__$5b$api$5d$__$28$ecmascript$29$__["default"].receta.delete({
+        return await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$Prisma$2e$ts__$5b$api$5d$__$28$ecmascript$29$__["default"].receta.update({
             where: {
                 cod_receta: id
+            },
+            data: {
+                status: false
             }
         });
     } catch (error) {
@@ -135,6 +161,7 @@ __turbopack_esm__({
     "createReceta": (()=>createReceta),
     "deleteReceta": (()=>deleteReceta),
     "getReceta": (()=>getReceta),
+    "getRecetaConMedicamentos": (()=>getRecetaConMedicamentos),
     "getRecetas": (()=>getRecetas),
     "updateReceta": (()=>updateReceta)
 });
@@ -148,6 +175,23 @@ const getRecetas = async (req, res)=>{
         console.error("Error en getRecetas:", error);
         return res.status(500).json({
             error: "Error buscando recetas"
+        });
+    }
+};
+const getRecetaConMedicamentos = async (req, res)=>{
+    const { id } = req.query;
+    try {
+        const receta = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$service$2f$RecetaService$2e$ts__$5b$api$5d$__$28$ecmascript$29$__.getRecetaConMedicamentos(Number(id));
+        if (!receta) {
+            return res.status(404).json({
+                error: "Receta no encontrada"
+            });
+        }
+        return res.status(200).json(receta);
+    } catch (error) {
+        console.error("Error en getRecetaConMedicamentos:", error);
+        return res.status(500).json({
+            error: "Error buscando receta con medicamentos"
         });
     }
 };
@@ -313,7 +357,7 @@ async function handler(req, res) {
         switch(method){
             case "GET":
                 if (id) {
-                    return await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$controller$2f$RecetaController$2e$ts__$5b$api$5d$__$28$ecmascript$29$__.getReceta(req, res);
+                    return await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$controller$2f$RecetaController$2e$ts__$5b$api$5d$__$28$ecmascript$29$__.getRecetaConMedicamentos(req, res);
                 } else {
                     return await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$controller$2f$RecetaController$2e$ts__$5b$api$5d$__$28$ecmascript$29$__.getRecetas(req, res);
                 }

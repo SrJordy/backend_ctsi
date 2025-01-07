@@ -10,6 +10,19 @@ export const getRecetas = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(500).json({ error: "Error buscando recetas" });
     }
 };
+export const getRecetaConMedicamentos = async (req: NextApiRequest, res: NextApiResponse) => {
+    const { id } = req.query;
+    try {
+        const receta = await RecetaServices.getRecetaConMedicamentos(Number(id));
+        if (!receta) {
+            return res.status(404).json({ error: "Receta no encontrada" });
+        }
+        return res.status(200).json(receta);
+    } catch (error) {
+        console.error("Error en getRecetaConMedicamentos:", error);
+        return res.status(500).json({ error: "Error buscando receta con medicamentos" });
+    }
+};
 
 export const getReceta = async (req: NextApiRequest, res: NextApiResponse) => {
     const { id } = req.query;
