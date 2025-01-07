@@ -1,4 +1,8 @@
 {
-  "/api/send-notification": "pages/api/send-notification.js",
+  "/api/ApiLogin": "pages/api/ApiLogin.js",
+  "/api/ApiUser": "pages/api/ApiUser.js",
+  "/api/ApiPaciente": "pages/api/ApiPaciente.js",
+  "/api/ApiHistorial": "pages/api/ApiHistorial.js",
+  "/api/ApiReceta": "pages/api/ApiReceta.js",
   "/api/ApiTratamiento": "pages/api/ApiTratamiento.js"
 }
