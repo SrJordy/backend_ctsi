@@ -148,7 +148,6 @@ export class UserService {
             }
 
 
-            // Verificar duplicados solo si se está actualizando email o CID
             if (data.email || data.CID) {
                 const duplicateUser = await prisma.usuario.findFirst({
                     where: {

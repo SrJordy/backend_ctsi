@@ -18668,7 +18668,7 @@ const _shared = __turbopack_require__("[project]/node_modules/next/dist/client/r
 const _tracer = /*#__PURE__*/ _interop_require_default._(__turbopack_require__("[project]/node_modules/next/dist/client/tracing/tracer.js [client] (ecmascript)"));
 const _reporttosocket = /*#__PURE__*/ _interop_require_default._(__turbopack_require__("[project]/node_modules/next/dist/client/tracing/report-to-socket.js [client] (ecmascript)"));
 const _isnextroutererror = __turbopack_require__("[project]/node_modules/next/dist/client/components/is-next-router-error.js [client] (ecmascript)");
-const version = "15.1.0";
+const version = "15.1.3";
 let router;
 const emitter = (0, _mitt.default)();
 const looseToArray = (input)=>[].slice.call(input);

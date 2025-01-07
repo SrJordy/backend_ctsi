@@ -185,7 +185,6 @@ class UserService {
             if (data.telefono && !(0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$validators$2e$ts__$5b$api$5d$__$28$ecmascript$29$__["validatePhone"])(data.telefono)) {
                 throw new UserServiceError("Número de teléfono inválido", "INVALID_PHONE");
             }
-            // Verificar duplicados solo si se está actualizando email o CID
             if (data.email || data.CID) {
                 const duplicateUser = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$Prisma$2e$ts__$5b$api$5d$__$28$ecmascript$29$__["default"].usuario.findFirst({
                     where: {

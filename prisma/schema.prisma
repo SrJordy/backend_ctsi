@@ -14,7 +14,7 @@ model usuario {
   CID           Int      @unique
   telefono      String
   email         String   @unique
-  rol           Rol // Enum: CUIDADOR, FAMILIAR, PROFESIONAL
+  rol           Rol // Enum: CUIDADOR, PROFESIONAL
   password      String
   creadoEn      DateTime @default(now())
   actualizadoEn DateTime @updatedAt
