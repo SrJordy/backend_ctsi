@@ -242,7 +242,10 @@ const cors = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$cors__$5b$ext
         'DELETE',
         'OPTIONS'
     ],
-    origin: 'http://localhost:5173',
+    origin: [
+        'http://localhost:5173',
+        '*'
+    ],
     credentials: true,
     optionsSuccessStatus: 200,
     allowedHeaders: [

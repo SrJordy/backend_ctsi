@@ -1,12 +1,7 @@
 {
-  "/api/ApiHistorial": "pages/api/ApiHistorial.js",
-  "/api/ApiLogin": "pages/api/ApiLogin.js",
   "/api/ApiUser": "pages/api/ApiUser.js",
   "/api/ApiPaciente": "pages/api/ApiPaciente.js",
-  "/api/ApiTratamiento": "pages/api/ApiTratamiento.js",
+  "/api/ApiHistorial": "pages/api/ApiHistorial.js",
   "/api/ApiReceta": "pages/api/ApiReceta.js",
-  "/api/ApiMedicamento": "pages/api/ApiMedicamento.js",
-  "/_app": "pages/_app.js",
-  "/_document": "pages/_document.js",
-  "/_error": "pages/_error.js"
+  "/api/ApiTratamiento": "pages/api/ApiTratamiento.js"
 }
