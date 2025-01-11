@@ -1,4 +1,5 @@
 {
+  "/api/ApiLogin": "pages/api/ApiLogin.js",
   "/api/ApiUser": "pages/api/ApiUser.js",
   "/api/ApiPaciente": "pages/api/ApiPaciente.js",
   "/api/ApiHistorial": "pages/api/ApiHistorial.js",

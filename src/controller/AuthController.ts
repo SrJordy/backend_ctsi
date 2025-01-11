@@ -19,7 +19,11 @@ export const loginUser = async (req: NextApiRequest, res: NextApiResponse) => {
             token: result.token,
             user: result.user, // Retorna tanto el token como los datos del usuario
         });
-    } catch (error: any) {
-        return res.status(401).json({ error: error.message });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            return res.status(401).json({ error: error.message });
+        }
+        return res.status(401).json({ error: "Error desconocido" });
     }
+    
 };
